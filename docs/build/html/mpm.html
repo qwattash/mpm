@@ -1,0 +1,246 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mpm crawler core &mdash; Minecraft Package Manager 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Minecraft Package Manager 0.1 documentation" href="index.html" />
+    <link rel="up" title="mpm" href="modules.html" />
+    <link rel="next" title="mpm.spiders package" href="mpm.spiders.html" />
+    <link rel="prev" title="mpm" href="modules.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mpm.spiders.html" title="mpm.spiders package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="mpm"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Minecraft Package Manager 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" accesskey="U">mpm</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="mpm-crawler-core">
+<h1>mpm crawler core<a class="headerlink" href="#mpm-crawler-core" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-mpm">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-mpm" title="Permalink to this headline">¶</a></h2>
+<p>Core repository spider</p>
+<div class="section" id="summary">
+<h3>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h3>
+<p>This module defines the scrapy based repository spider as well as the
+various operation that are performed on the mod informations.</p>
+<p>The module also handles the download process of the mod files through
+normal and interactive urls.</p>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="mpm.spiders.html">mpm.spiders package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mpm.spiders.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mpm.spiders.html#module-mpm.spiders.modinfo">mpm.spiders.modinfo module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mpm.spiders.html#module-mpm.spiders">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mpm.loaders.html">mpm.loaders</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mpm.loaders.html#module-mpm.loaders">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mpm.loaders.html#mpm-loaders-curseforge">mpm.loaders.curseforge</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="module-mpm.items">
+<span id="mpm-items"></span><h2>mpm.items<a class="headerlink" href="#module-mpm.items" title="Permalink to this headline">¶</a></h2>
+<p>Define item models for the scraped items.</p>
+<p>The item in the release version will probably be an adapter on
+the SQLAlchemy Mod model</p>
+<dl class="class">
+<dt id="mpm.items.ModItem">
+<em class="property">class </em><code class="descclassname">mpm.items.</code><code class="descname">ModItem</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#mpm.items.ModItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">scrapy.item.Item</span></code></p>
+<p>Define the basic informations for a mod</p>
+<p>A mod item defines the model for a mod, this representation is the
+input to various operations can be performed by the modpack designer.</p>
+<dl class="attribute">
+<dt id="mpm.items.ModItem.author">
+<code class="descname">author</code><em class="property"> = None</em><a class="headerlink" href="#mpm.items.ModItem.author" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mod author(s)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mpm.items.ModItem.fields">
+<code class="descname">fields</code><em class="property"> = {'mod_license': {}, 'name': {}, 'version': {}, 'author': {}, 'url': {}, 'minecraft_version': {}, 'smp': {}}</em><a class="headerlink" href="#mpm.items.ModItem.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mpm.items.ModItem.minecraft_version">
+<code class="descname">minecraft_version</code><em class="property"> = None</em><a class="headerlink" href="#mpm.items.ModItem.minecraft_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Mod support these minecraft versions</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mpm.items.ModItem.mod_license">
+<code class="descname">mod_license</code><em class="property"> = None</em><a class="headerlink" href="#mpm.items.ModItem.mod_license" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mod license terms and modpack policy</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mpm.items.ModItem.name">
+<code class="descname">name</code><em class="property"> = None</em><a class="headerlink" href="#mpm.items.ModItem.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mod name</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mpm.items.ModItem.smp">
+<code class="descname">smp</code><em class="property"> = None</em><a class="headerlink" href="#mpm.items.ModItem.smp" title="Permalink to this definition">¶</a></dt>
+<dd><p>The mod supports multiplayer and must be included in the server build</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mpm.items.ModItem.url">
+<code class="descname">url</code><em class="property"> = None</em><a class="headerlink" href="#mpm.items.ModItem.url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download URL for the mod</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mpm.items.ModItem.version">
+<code class="descname">version</code><em class="property"> = None</em><a class="headerlink" href="#mpm.items.ModItem.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mod version provided by the download url found</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-mpm.pipelines">
+<span id="mpm-pipelines"></span><h2>mpm.pipelines<a class="headerlink" href="#module-mpm.pipelines" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mpm.pipelines.MpmPipeline">
+<em class="property">class </em><code class="descclassname">mpm.pipelines.</code><code class="descname">MpmPipeline</code><a class="headerlink" href="#mpm.pipelines.MpmPipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="mpm.pipelines.MpmPipeline.process_item">
+<code class="descname">process_item</code><span class="sig-paren">(</span><em>item</em>, <em>spider</em><span class="sig-paren">)</span><a class="headerlink" href="#mpm.pipelines.MpmPipeline.process_item" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-mpm.settings">
+<span id="mpm-settings"></span><h2>mpm.settings<a class="headerlink" href="#module-mpm.settings" title="Permalink to this headline">¶</a></h2>
+<p>Scrapy settings for the mpm project.</p>
+<p>This will probably be replaced by dynamic settings in the mpm main command script.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">mpm crawler core</a><ul>
+<li><a class="reference internal" href="#module-mpm">Module contents</a><ul>
+<li><a class="reference internal" href="#summary">Summary</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-mpm.items">mpm.items</a></li>
+<li><a class="reference internal" href="#module-mpm.pipelines">mpm.pipelines</a></li>
+<li><a class="reference internal" href="#module-mpm.settings">mpm.settings</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="modules.html"
+                        title="previous chapter">mpm</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="mpm.spiders.html"
+                        title="next chapter">mpm.spiders package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/mpm.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mpm.spiders.html" title="mpm.spiders package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="mpm"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Minecraft Package Manager 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >mpm</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Alfredo Mazzinghi (qwattash).
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>
