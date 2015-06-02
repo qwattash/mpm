@@ -31,6 +31,7 @@ def test_curseforge_simplified_index_urls(response):
     with a simplified html source
     """
     spider = CurseforgeSpider()
+    spider._follow_links = True
     parsed = iter(spider.parse(response))
     urls = [urlparse.urljoin(response.url, url) for url in expected_urls]    
     assert_parse_requests(parsed, urls)
@@ -42,6 +43,7 @@ def test_curseforge_full_index_urls(response):
     with the full html with a substed of the items for simplicity
     """
     spider = CurseforgeSpider()
+    spider._follow_links = True
     parsed = iter(spider.parse(response))
     urls = [urlparse.urljoin(response.url, url) for url in expected_urls]    
     assert_parse_requests(parsed, urls)

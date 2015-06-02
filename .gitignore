@@ -1,5 +1,9 @@
 # emacs temp files
 *~
 
+# python binaries
+*.pyc
+*__pycache__*
+
 # virtualenv
 venv/*
