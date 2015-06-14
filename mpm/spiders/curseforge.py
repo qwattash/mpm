@@ -47,10 +47,8 @@ class CurseforgeSpider(CrawlSpider):
         Note: it is assumed that urls in the pagination are of the form
         ``"/category?page=<integer>[&other]"``
         """
-        mod_links = response.xpath("//ul[contains(@class, 'listing-project')]/li/div/a/@href")
-        for url in mod_links.extract():
-            full_url = urljoin(response.url, url)
-            yield Request(url=full_url, callback="parse_mod")
+        for request in self.parse_category(response):
+            yield request
 
         # try to guess the page range from urls in the pagination footer
         paginator_urls = response.xpath("//ul[contains(@class, 'paging-list')]/li/a/@href")
@@ -83,7 +81,10 @@ class CurseforgeSpider(CrawlSpider):
         """
         Extract urls in a mod category page
         """
-        return None
+        mod_links = response.xpath("//ul[contains(@class, 'listing-project')]/li/div/a/@href")
+        for url in mod_links.extract():
+            full_url = urljoin(response.url, url)
+            yield Request(url=full_url, callback="parse_mod")
 
     def parse_mod(self, response):
         """
