@@ -24,7 +24,8 @@ def build_scrapy_response(url, data):
                             body=data)
     return response
 
-def build_scrapy_response_from_file(url, path):
+
+def scrapy_response_from_file(url, path):
     """ Build a fake scrapy response from a file
     
     The file path is either absolute or relative to the test runner
@@ -36,7 +37,8 @@ def build_scrapy_response_from_file(url, path):
     """
     with open(path, "r") as fd:
         return build_scrapy_response(url, fd.read())
-    
+
+
 def mock_scrapy_response(url, path):
     """ Decorator that provides a mock scrapy response
 
@@ -51,12 +53,13 @@ def mock_scrapy_response(url, path):
         
         @wraps(fn)
         def wrapped(*args, **kwargs):
-            response = build_scrapy_response_from_file(url, path)
+            response = scrapy_response_from_file(url, path)
             return fn(response, *args, **kwargs)
 
         return wrapped
 
     return decorator
+
 
 def assert_parse_requests(parser, urls):
     """ Test helper for asserting returned :class:`scrapy.http.Request`

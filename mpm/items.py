@@ -2,8 +2,7 @@
 """
 Define item models for the scraped items.
 
-The item in the release version will probably be an adapter on
-the SQLAlchemy Mod model
+The item defines a group of attributes common to all mods
 """
 
 import scrapy
@@ -20,16 +19,32 @@ class ModItem(scrapy.Item):
     name = scrapy.Field()
     """ Mod name """
 
-    author = scrapy.Field()
+    description = scrapy.Field()
+    """ Mod description """
+
+    authors = scrapy.Field()
     """ Mod author(s) """
-    url = scrapy.Field()
-    """ Download URL for the mod """
 
-    version = scrapy.Field()
-    """ Mod version provided by the download url found """
+    created = scrapy.Field()
+    """ Creation date """
 
-    minecraft_version = scrapy.Field()
-    """ The Mod support these minecraft versions """
+    updated = scrapy.Field()
+    """ Last update date """
+
+    downloads = scrapy.Field()
+    """ Number of downloads """
+
+    categories = scrapy.Field()
+    """ Categories and tags for indexing """
+    
+    source_url = scrapy.Field()
+    """ Sources URL for the mod """
+
+    donation_url = scrapy.Field()
+    """ Donations url for the mod """
+
+    mod_url = scrapy.Field()
+    """ Mod page url """
 
     mod_license = scrapy.Field()
     """ Mod license terms and modpack policy """

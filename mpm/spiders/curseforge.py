@@ -91,5 +91,62 @@ class CurseforgeSpider(CrawlSpider):
         Extract mod informations from a response
         """
         loader = ModItemLoader(item=ModItem(), response=response)
-        loader.add_xpath("name")
-        return loader.load_item()
+        loader.add_xpath("name", "//h1[@class='project-title']//span/text()")
+        
+        loader.add_xpath("description",
+                         "//div[@class='project-description']/p/descendant::text()|"\
+                         "//div[@class='project-description']/p/descendant::br|"\
+                         "//div[@class='project-description']/p/a"\
+                         "[contains(@href, 'http://')]/@href")
+        
+        loader.add_xpath("created", "//ul[contains(@class,'project-details')]/"\
+                         "li[./div[@class='info-label' and text()='Created']]/"\
+                         "div[@class='info-data']//text()")
+        
+        loader.add_xpath("updated", "//ul[contains(@class,'project-details')]/"\
+                         "li[./div[@class='info-label' and text()='Last Released File']]/"\
+                         "div[@class='info-data']//text()")
+        
+        loader.add_xpath("downloads", "//ul[contains(@class,'project-details')]/"\
+                         "li[./div[@class='info-label' and text()='Total Downloads']]/"\
+                         "div[@class='info-data']//text()")
+
+        loader.add_xpath("categories", "//ul[contains(@class,'project-categories')]//a/@href")
+
+        loader.add_xpath("authors", "//ul[contains(@class,'project-members')]//"\
+                         "*[contains(@class,'info-wrapper')]//a//text()")
+
+        loader.add_xpath("source_url", "//nav[contains(@class,'project-header-nav')]//"\
+                         "a[normalize-space(text())='Source']/@href")
+
+        loader.add_xpath("donation_url", "//nav[contains(@class,'project-header-nav')]//"\
+                         "a[normalize-space(descendant::*/text())='Donate']/@href")
+        
+        loader.add_xpath("donation_url", "//nav[contains(@class,'project-header-nav')]//"\
+                         "a[normalize-space(descendant::*/text())='Donate']/@href")
+
+        item = loader.load_item()
+
+        item["mod_url"] = response.url
+
+        # return the request that will extract the files for this mod
+        files_url = response.xpath("//nav[contains(@class,'project-header-nav')]//"\
+                                   "a[normalize-space(text())='Files']/@href").extract()[0]
+        yield Request(url=urljoin(response.url, files_url),
+                      callback="parse_mod_files",
+                      meta={"item":item})
+
+        # return the request that will extract the license for the mod
+        # and complete the item loading
+        license_url = response.xpath("//ul[contains(@class,'project-details')]/"\
+                                     "li[./div[@class='info-label' and text()='License']]/"\
+                                     "div[@class='info-data']//a/@href").extract()[0]
+        yield Request(url=urljoin(response.url, license_url),
+                      callback="parse_mod_license",
+                      meta={"item":item})
+
+    def parse_mod_license(self, response):
+        pass
+
+    def parse_mod_files(self, response):
+        pass
