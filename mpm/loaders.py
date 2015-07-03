@@ -12,6 +12,7 @@ import re
 from datetime import datetime
 from itertools import chain
 from functools import partial
+from w3lib.html import remove_tags
 
 from scrapy.contrib.loader import ItemLoader
 from scrapy.contrib.loader.processor import TakeFirst, Join, Compose, Identity
@@ -184,3 +185,5 @@ class ModItemLoader(ItemLoader):
 
     authors_in = Identity()
     authors_out = Identity()
+
+    mod_license_in = Compose(partial(map, remove_tags), partial(map, string.strip))

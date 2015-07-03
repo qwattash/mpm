@@ -107,7 +107,10 @@ def test_curseforge_mod_category_page(response):
 def test_curseforge_mod_page(response):
     """
     :class:`CurseforgeSpider` url and item extraction from a sample
-    curseforge mod page
+    curseforge mod page.
+    The spider returns two requests, one used to fetch mod files
+    and the other to complete the mod item generation by adding
+    the license
     """
     spider = CurseforgeSpider()
     spider._follow_links = True
@@ -134,3 +137,24 @@ def test_curseforge_mod_page(response):
     assert item["source_url"] == "https://github.com/source_url"
     assert item["donation_url"] == "https://www.paypal.com/donation_url"
     assert item["mod_url"] == "http://foo.org"
+
+
+@pytest.mark.crawl_curse
+@pytest.mark.parametrize("response", [
+    scrapy_response_from_file("http://foo.org", "tests/resources/curseforge_mod_license.html"),
+])
+def test_curseforge_mod_license_and_finalization(response):
+    """
+    :class:`CurseforgeSpider` mod license parsing and mod item parsing
+    finishing step.
+    """
+    spider = CurseforgeSpider()
+    spider._follow_links = True
+    response.meta["item"] = ModItem()
+    parsed = spider.parse_mod_license(response)
+
+    parsed = list(parsed)
+    assert len(parsed) == 1
+    
+    item = list(parsed)[0]
+    assert item["mod_license"] == "Creative Commons Full Text"

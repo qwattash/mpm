@@ -79,7 +79,10 @@ class CurseforgeSpider(CrawlSpider):
 
     def parse_category(self, response):
         """
-        Extract urls in a mod category page
+        Extract urls in a mod category page.
+        
+        For each category page, the urls to the mod pages are parsed;
+        the :meth:`parse_mod` method will be called to handle mod pages.
         """
         mod_links = response.xpath("//ul[contains(@class, 'listing-project')]/li/div/a/@href")
         for url in mod_links.extract():
@@ -88,7 +91,14 @@ class CurseforgeSpider(CrawlSpider):
 
     def parse_mod(self, response):
         """
-        Extract mod informations from a response
+        Extract mod informations from a response.
+
+        A mod item is partially created and then passed to the license
+        parsing method :meth:`parse_mod_license` which adds the license
+        to the item and finally returns the item.
+        A second request is generated to extract files for the mod,
+        the files will be stored in a separate item that will be
+        associated with the mod item in the item pipeline.
         """
         loader = ModItemLoader(item=ModItem(), response=response)
         loader.add_xpath("name", "//h1[@class='project-title']//span/text()")
@@ -146,7 +156,20 @@ class CurseforgeSpider(CrawlSpider):
                       meta={"item":item})
 
     def parse_mod_license(self, response):
-        pass
+        """
+        Extract mod license from the license page.
+        
+        The license is attached to the pre-parsed item given in the
+        response meta; the finished :class:`ModItem` is then returned.
+        """
+        item = response.meta["item"]
+        loader = ModItemLoader(item=item, response=response)
 
+        loader.add_value("mod_license", response.body)
+        item = loader.load_item()
+        yield item
+             
     def parse_mod_files(self, response):
+        """
+        """
         pass
