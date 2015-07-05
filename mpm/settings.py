@@ -20,4 +20,9 @@ SPIDER_MODULES = ['mpm.spiders']
 NEWSPIDER_MODULE = 'mpm.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'mpm (+http://www.yourdomain.com)'
+USER_AGENT = 'mpm'
+
+# throttle crawling to avoid being blocked
+DOWNLOAD_DELAY = 5
+
+RANDOMIZE_DOWNLOAD_DELAY = True

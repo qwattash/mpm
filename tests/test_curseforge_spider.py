@@ -16,32 +16,20 @@ from mpm.spiders.curseforge import CurseforgeSpider
 
 from helpers import mock_scrapy_response, assert_parse_requests, scrapy_response_from_file
 
-expected_urls_index = ["/mc-mods",
-                       "/mc-mods/mc-addons",
-                       "/mc-mods/mc-addons/blood-magic",
-                       "/mc-mods/mc-addons/addons-buildcraft",
-                       "/mc-mods/adventure-rpg",
-                       "/mc-mods/armor-weapons-tools",
-                       "/mc-mods/cosmetic",
-                       "/mc-mods/technology",
-                       "/mc-mods/technology/technology-energy",
-                       "/mc-mods/technology/technology-item-fluid-energy-transport",
-                       "/mc-mods/world-gen/world-biomes",
-                       "/mc-mods/library-api"]
 
-expected_urls_first_category = ["/mc-mods/223628-thaumcraft",
-                                "/mc-mods/225643-botania",
-                                "/mc-mods/221857-pams-harvestcraft",
-                                "/mc-mods/cosmetic?page=2",
-                                "/mc-mods/cosmetic?page=3",
-                                "/mc-mods/cosmetic?page=4",
-                                "/mc-mods/cosmetic?page=5",
-                                "/mc-mods/cosmetic?page=6",
-                                "/mc-mods/cosmetic?page=7"]
+expected_urls_index = ["/mc-mods/74072-tinkers-construct",
+                       "/mc-mods/222213-codechickencore",
+                       "/mc-mods/222211-notenoughitems",
+                       "/mc-mods?page=2",
+                       "/mc-mods?page=3",
+                       "/mc-mods?page=4",
+                       "/mc-mods?page=5",
+                       "/mc-mods?page=6",
+                       "/mc-mods?page=7"]
 
-expected_urls_category = ["/mc-mods/223628-thaumcraft",
-                          "/mc-mods/225643-botania",
-                          "/mc-mods/221857-pams-harvestcraft"]
+expected_urls_list_page = ["/mc-mods/74072-tinkers-construct",
+                           "/mc-mods/222213-codechickencore",
+                           "/mc-mods/222211-notenoughitems"]
 
 expected_urls_mod = ["/mc-mods/74072-tinkers-construct/files",
                      "/mc-mods/74072-tinkers-construct/license"]
@@ -65,10 +53,10 @@ def test_curseforge_index_urls(response):
 
 @pytest.mark.crawl_curse
 @pytest.mark.parametrize("response", [
-    scrapy_response_from_file("http://foo.org", "tests/resources/curseforge_cosmetic_base.html"),
-    scrapy_response_from_file("http://foo.org", "tests/resources/curseforge_cosmetic_full.html"),
+    scrapy_response_from_file("http://foo.org", "tests/resources/curseforge_mcmods_base.html"),
+    scrapy_response_from_file("http://foo.org", "tests/resources/curseforge_mcmods_full.html"),
 ])
-def test_curseforge_mod_category(response):
+def test_curseforge_mod_list_page(response):
     """
     :class:`CurseforgeSpider` url extraction from the sample curseforge
     category page.
@@ -77,25 +65,8 @@ def test_curseforge_mod_category(response):
     """
     spider = CurseforgeSpider()
     spider._follow_links = True
-    parsed = iter(spider.parse_first_category(response))
-    urls = [urlparse.urljoin(response.url, url) for url in expected_urls_first_category]
-    assert_parse_requests(parsed, urls)
-
-
-@pytest.mark.crawl_curse
-@pytest.mark.parametrize("response", [
-    scrapy_response_from_file("http://foo.org", "tests/resources/curseforge_cosmetic_base.html"),
-    scrapy_response_from_file("http://foo.org", "tests/resources/curseforge_cosmetic_full.html"),
-])
-def test_curseforge_mod_category_page(response):
-    """
-    :class:`CurseforgeSpider` url extraction from a sample
-    curseforge category page where pagination urls are not extracted.
-    """
-    spider = CurseforgeSpider()
-    spider._follow_links = True
-    parsed = iter(spider.parse_category(response))
-    urls = [urlparse.urljoin(response.url, url) for url in expected_urls_category]
+    parsed = iter(spider.parse_mod_list_page(response))
+    urls = [urlparse.urljoin(response.url, url) for url in expected_urls_list_page]
     assert_parse_requests(parsed, urls)
 
 

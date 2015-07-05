@@ -3,14 +3,14 @@
 from urllib import urlencode
 from urlparse import urljoin, urlparse, parse_qs, urlsplit, urlunsplit
 
-from scrapy.contrib.spiders import CrawlSpider, Rule
+from scrapy.spider import Spider
 from scrapy.contrib.linkextractors.lxmlhtml import LxmlLinkExtractor
 from scrapy.http import Request
 
 from ..loaders import ModItemLoader
 from ..items import ModItem
 
-class CurseforgeSpider(CrawlSpider):
+class CurseforgeSpider(Spider):
     """ Spider for the curseforge repository
     
     Generate :class:`ModItem` elements for mods in
@@ -30,24 +30,18 @@ class CurseforgeSpider(CrawlSpider):
     """
 
     name = "curseforge"
-    allowed_domains = []
-    start_urls = []
+    allowed_domains = ["minecraft.curseforge.com"]
+    start_urls = ["http://minecraft.curseforge.com/mc-mods"]
 
-    rules = [
-        Rule(LxmlLinkExtractor(restrict_xpaths="//ul[contains(@class, "\
-                               "'listing-game-category')]//li/a"),
-                               callback="parse_first_category")
-    ]
-
-    def parse_first_category(self, response):
+    def parse(self, response):
         """
-        Extract paginated category mods and mod links
-        in the first category page
+        Extract paginated mods and mod links
+        in the first page
         
         Note: it is assumed that urls in the pagination are of the form
         ``"/category?page=<integer>[&other]"``
         """
-        for request in self.parse_category(response):
+        for request in self.parse_mod_list_page(response):
             yield request
 
         # try to guess the page range from urls in the pagination footer
@@ -75,13 +69,13 @@ class CurseforgeSpider(CrawlSpider):
             query = query_string
             url = urlunsplit((scheme, netloc, path, query, fragment))
             url = urljoin(response.url, url)
-            yield Request(url=url, callback="parse_category")
+            yield Request(url=url, callback="parse_mod_list_page")
 
-    def parse_category(self, response):
+    def parse_mod_list_page(self, response):
         """
-        Extract urls in a mod category page.
+        Extract urls in a mod list page.
         
-        For each category page, the urls to the mod pages are parsed;
+        For each page, the urls to the mod pages are parsed;
         the :meth:`parse_mod` method will be called to handle mod pages.
         """
         mod_links = response.xpath("//ul[contains(@class, 'listing-project')]/li/div/a/@href")
