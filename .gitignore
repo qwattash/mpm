@@ -7,3 +7,6 @@
 
 # virtualenv
 venv/*
+
+# sphinx docs
+docs/build/*
