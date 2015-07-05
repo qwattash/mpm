@@ -3,12 +3,13 @@
 from urllib import urlencode
 from urlparse import urljoin, urlparse, parse_qs, urlsplit, urlunsplit
 
-from scrapy.spider import Spider
-from scrapy.contrib.linkextractors.lxmlhtml import LxmlLinkExtractor
+from scrapy.spiders import Spider
+from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
 from scrapy.http import Request
 
 from ..loaders import ModItemLoader
 from ..items import ModItem
+
 
 class CurseforgeSpider(Spider):
     """ Spider for the curseforge repository
@@ -63,13 +64,14 @@ class CurseforgeSpider(Spider):
         # page range to request
         first_page = min(page_numbers)
         last_page = max(page_numbers)
+        self.logger.info("Found mod list pages {0}-{1}".format(first_page, last_page))
         for page in range(first_page, last_page + 1):
             base_page_query["page"] = page
             query_string = urlencode(base_page_query)
             query = query_string
             url = urlunsplit((scheme, netloc, path, query, fragment))
             url = urljoin(response.url, url)
-            yield Request(url=url, callback="parse_mod_list_page")
+            yield Request(url=url, callback=self.parse_mod_list_page)
 
     def parse_mod_list_page(self, response):
         """
@@ -81,9 +83,10 @@ class CurseforgeSpider(Spider):
         mod_links = response.xpath("//ul[contains(@class, 'listing-project')]/li/div/a/@href")
         for url in mod_links.extract():
             full_url = urljoin(response.url, url)
-            yield Request(url=full_url, callback="parse_mod")
+            self.logger.info("Found mod URL {0}".format(full_url))
+            yield Request(url=full_url, callback=self.parse_mod_page)
 
-    def parse_mod(self, response):
+    def parse_mod_page(self, response):
         """
         Extract mod informations from a response.
 
@@ -133,11 +136,14 @@ class CurseforgeSpider(Spider):
 
         item["mod_url"] = response.url
 
+        self.logger.info("Created item Mod {0} @ {1}".format(item["name"], response.url))
+
         # return the request that will extract the files for this mod
         files_url = response.xpath("//nav[contains(@class,'project-header-nav')]//"\
                                    "a[normalize-space(text())='Files']/@href").extract()[0]
+        self.logger.info("Request mod files for Mod {0} @ {1}".format(item["name"], files_url))
         yield Request(url=urljoin(response.url, files_url),
-                      callback="parse_mod_files",
+                      callback=self.parse_mod_files,
                       meta={"item":item})
 
         # return the request that will extract the license for the mod
@@ -145,8 +151,9 @@ class CurseforgeSpider(Spider):
         license_url = response.xpath("//ul[contains(@class,'project-details')]/"\
                                      "li[./div[@class='info-label' and text()='License']]/"\
                                      "div[@class='info-data']//a/@href").extract()[0]
+        self.logger.info("Request mod license for Mod {0} @ {1}".format(item["name"], license_url))
         yield Request(url=urljoin(response.url, license_url),
-                      callback="parse_mod_license",
+                      callback=self.parse_mod_license,
                       meta={"item":item})
 
     def parse_mod_license(self, response):

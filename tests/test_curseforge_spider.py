@@ -41,7 +41,7 @@ expected_urls_mod = ["/mc-mods/74072-tinkers-construct/files",
 ])
 def test_curseforge_index_urls(response):
     """
-    Test :class:`CurseforgeSpider` url extraction from curseforge 
+    Test :class:`CurseforgeSpider` url extraction from curseforge
     index sample
     """
     spider = CurseforgeSpider()
@@ -58,10 +58,9 @@ def test_curseforge_index_urls(response):
 ])
 def test_curseforge_mod_list_page(response):
     """
-    :class:`CurseforgeSpider` url extraction from the sample curseforge
-    category page.
-    Pagination is active and this extracts data from the first page,
-    some next-page urls are not rendered.
+    :class:`CurseforgeSpider` url extraction from a sample curseforge
+    mod list page.
+    Pagination is active and this extracts data from the first page.
     """
     spider = CurseforgeSpider()
     spider._follow_links = True
@@ -81,11 +80,11 @@ def test_curseforge_mod_page(response):
     curseforge mod page.
     The spider returns two requests, one used to fetch mod files
     and the other to complete the mod item generation by adding
-    the license
+    the license.
     """
     spider = CurseforgeSpider()
     spider._follow_links = True
-    parsed = spider.parse_mod(response)
+    parsed = spider.parse_mod_page(response)
     parsed = list(parsed)
     urls = [urlparse.urljoin(response.url, url) for url in expected_urls_mod]
     
@@ -103,7 +102,8 @@ def test_curseforge_mod_page(response):
     assert item["created"] == date(2014, 2, 8)
     assert item["updated"] == date(2015, 5, 10)
     assert item["downloads"] == 1000
-    assert sorted(item["categories"]) == sorted(["armor", "weapons", "tools", "technology", "processing"])
+    assert (sorted(item["categories"]) ==
+            sorted(["armor", "weapons", "tools", "technology", "processing"]))
     assert sorted(item["authors"]) == sorted(["mDiyo", "boni", "jadedcat"])
     assert item["source_url"] == "https://github.com/source_url"
     assert item["donation_url"] == "https://www.paypal.com/donation_url"

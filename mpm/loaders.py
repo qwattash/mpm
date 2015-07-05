@@ -14,8 +14,8 @@ from itertools import chain
 from functools import partial
 from w3lib.html import remove_tags
 
-from scrapy.contrib.loader import ItemLoader
-from scrapy.contrib.loader.processor import TakeFirst, Join, Compose, Identity
+from scrapy.loader import ItemLoader
+from scrapy.loader.processors import TakeFirst, Join, Compose, Identity
 
 __all__ = ("ModItemLoader",)
 
