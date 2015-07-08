@@ -52,6 +52,12 @@ To install them just type:
 pip install -r requirements_dev.txt
 ```
 
+To install the mpm module cd to the mpm root folder and type:
+
+```
+pip install -e ./
+```
+
 ## Git commit messages style
 As a part of the mpm team you should use the following commit message convention:
 
