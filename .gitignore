@@ -11,3 +11,6 @@ mpm.egg-info/*
 
 # sphinx docs
 docs/build/*
+
+# coverage output
+.coverage
