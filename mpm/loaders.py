@@ -18,16 +18,18 @@ from urlparse import urljoin
 from scrapy.loader import ItemLoader
 from scrapy.loader.processors import TakeFirst, Join, Compose, Identity
 
-__all__ = ("ModItemLoader",)
+
 
 def normalize_blanks(value):
     """
     Remove extra spaces in the data given by the loader
+
     :param value: list of data strings
     :type value: list
     :return: the modified data list
     :rtype: list
     """
+    # pylint: disable=missing-docstring
     def _norm(norm):
         norm = re.sub("[ \t]+", " ", norm)
         norm = re.sub("^[ \t]+", "", norm)
@@ -40,6 +42,7 @@ def normalize_line_breaks(value):
     """
     This is useful to preserve newlines when parsing paragraph data;
     <br> tags are turned into \n for each item in the input list
+
     :param value: list of data strings
     :type value: list
     :return: the modified data list
@@ -74,7 +77,7 @@ def normalize_date(value):
 
 def normalize_epoch(value):
     """
-    Parse epoch timestamps in the input list as 
+    Parse epoch timestamps in the input list as
     :class:`datetime.date` objects.
 
     If the string can not be parsed the output for that string is None.
@@ -96,18 +99,20 @@ def normalize_epoch(value):
 def normalize_int(value):
     """
     Parse an integer string into a python int
+
     :param value: list of strings to parse
     :type value: list
     :return: list of either integers or None
     :rtype: list
     """
+    # pylint: disable=missing-docstring
     def _int(item):
         try:
             return int(re.sub("[,.]", "", item))
         except ValueError:
             return None
-        
-    return map(_int, value)
+
+    return [_int(val) for val in value]
 
 
 def normalize_url(value, loader_context):
@@ -123,16 +128,18 @@ def normalize_url(value, loader_context):
     :rtype: list
     """
     base_url = loader_context.get("url")
-    return map(partial(urljoin, base_url), value)
-        
+    return [urljoin(base_url, val) for val in value]
 
-class substring(object):
+
+class Substring(object): # pylint: disable=too-few-public-methods
     """
     Callable filter that extracts substrings from the loader data
     """
-    
+
     def __init__(self, regex):
         """
+        Initialise the callable with the target regex
+
         :param regex: regular expression to match, the regex must have
         a group expression to mark the part to be extracted
         :type regex: str
@@ -157,7 +164,8 @@ class substring(object):
                 sub_value.append(None)
         return sub_value
 
-class split(object):
+
+class Split(object): # pylint: disable=too-few-public-methods
     """
     Callable filter that splits loader data
     """
@@ -171,7 +179,7 @@ class split(object):
 
     def __call__(self, value):
         """
-        Split each string in the input string list and concatenate 
+        Split each string in the input string list and concatenate
         the resulting lists
         :param value: list of input strings
         :type value: list
@@ -179,12 +187,12 @@ class split(object):
         :rtype: list
         """
         # split each input string
-        split_lists = map(lambda val: val.split(self.sep) if val else None, value)
+        split_lists = [val.split(self.sep) for val in value if val]
         # chain each resulting list and remove None values
-        return filter(lambda val: val is not None, chain(*split_lists))
+        return [val for val in chain(*split_lists) if val is not None]
 
 
-class JoinNormalizeNewlines(Join):
+class JoinNormalizeNewlines(Join): # pylint: disable=too-few-public-methods
     """
     Join values in an array as the normal join function except that
     when newlines are found no separator is added
@@ -192,6 +200,7 @@ class JoinNormalizeNewlines(Join):
 
     def __call__(self, values):
         # create an helper function for the reduction
+        # pylint: disable=missing-docstring
         def _join(acc, val):
             if val.endswith("\n") or acc.endswith("\n") or acc == "":
                 return acc + val
@@ -199,8 +208,8 @@ class JoinNormalizeNewlines(Join):
                 return acc + self.separator + val
         return reduce(_join, values, "")
 
-    
-class ModItemLoader(ItemLoader):
+
+class ModItemLoader(ItemLoader): # pylint: disable=too-few-public-methods
     """
     Loader for :class:`items.ModItem` objects used in
     :class:`spiders.curseforge.CurseforgeSpider`
@@ -213,12 +222,12 @@ class ModItemLoader(ItemLoader):
     description_out = JoinNormalizeNewlines()
 
     created_in = Compose(normalize_date)
-    
+
     updated_in = Compose(normalize_date)
 
     downloads_in = Compose(normalize_int)
 
-    categories_in = Compose(substring(".*/([\w-]+)$"), split("-"), set)
+    categories_in = Compose(Substring(".*/([\\w-]+)$"), Split("-"), set)
     categories_out = Identity()
 
     authors_in = Identity()
@@ -227,7 +236,7 @@ class ModItemLoader(ItemLoader):
     mod_license_in = Compose(partial(map, remove_tags), partial(map, string.strip))
 
 
-class ModFileItemLoader(ItemLoader):
+class ModFileItemLoader(ItemLoader): # pylint: disable=too-few-public-methods
     """
     Loader for :class:`items.ModFileItem` objects used in
     :class:`spiders.curseforge.CurseforgeSpider`
@@ -242,7 +251,7 @@ class ModFileItemLoader(ItemLoader):
 
     mc_version_in = partial(map, string.strip)
 
-    size_in = Compose(partial(map, string.strip), substring("(.*) +(K|M|G)B$"), partial(map, float))
+    size_in = Compose(partial(map, string.strip), Substring("(.*) +(K|M|G)B$"), partial(map, float))
 
     upload_date_in = Compose(normalize_epoch)
 

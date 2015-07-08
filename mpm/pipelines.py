@@ -1,11 +1,25 @@
 # -*- coding: utf-8 -*-
 
-# Define your item pipelines here
-#
-# Don't forget to add your pipeline to the ITEM_PIPELINES setting
-# See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
+"""
+Item Pipelines
+--------------
+
+This module defines the operations that are performed on crawled items,
+the mpm architecture requires the items scraped from a repository to be
+stored in the mpm local database in which mods are stored in a
+repository-agnostic model.
+"""
 
 
 class MpmPipeline(object):
+    """
+    Dummy pipeline
+    :todo: missing implementation
+    """
+
     def process_item(self, item, spider):
+        """
+        Dummy pipeline processing
+        :todo: missing implementation
+        """
         return item

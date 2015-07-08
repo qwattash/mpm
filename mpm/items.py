@@ -36,7 +36,7 @@ class ModItem(scrapy.Item):
 
     categories = scrapy.Field()
     """ Categories and tags for indexing """
-    
+
     source_url = scrapy.Field()
     """ Sources URL for the mod """
 
@@ -62,12 +62,12 @@ class ModFileItem(scrapy.Item):
 
     mod = scrapy.Field()
     """ Name of the mod to which the file is related """
-    
+
     name = scrapy.Field()
     """ Name of the file """
 
     release = scrapy.Field()
-    """ 
+    """
     Realease informations
 
     Valid strings are:

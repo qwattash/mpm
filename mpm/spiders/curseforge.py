@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
 
+"""
+Curseforge Spider
+-----------------
+
+This module defines the spider for the curseforge mod repository,
+the mod repository structure is explained in the
+:class:`CurseforgeSpider` documentation.
+"""
+
 from urllib import urlencode
 from urlparse import urljoin, urlparse, parse_qs, urlsplit, urlunsplit
 
 from scrapy.spiders import Spider
-from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
 from scrapy.http import Request
 
 from ..loaders import ModItemLoader, ModFileItemLoader
@@ -13,7 +21,7 @@ from ..items import ModItem, ModFileItem
 
 class CurseforgeSpider(Spider):
     """ Spider for the curseforge repository
-    
+
     Generate :class:`ModItem` elements for mods in
     the curseforge online archive.
 
@@ -26,8 +34,7 @@ class CurseforgeSpider(Spider):
         - mc-mods
         | - mc-addons
         | - adventure-rpg
-        \ - ...
-
+        ` - ...
     """
 
     name = "curseforge"
@@ -56,7 +63,7 @@ class CurseforgeSpider(Spider):
             if "page" in query:
                 page_numbers.append(int(query["page"][0]))
 
-        # page range 
+        # page range
         first_page = min(page_numbers)
         last_page = max(page_numbers)
         return (first_page, last_page)
@@ -104,7 +111,7 @@ class CurseforgeSpider(Spider):
         """
         Extract paginated mods and mod links
         in the first page
-        
+
         Note: it is assumed that urls in the pagination are of the form
         ``"/category?page=<integer>[&other]"``
         """
@@ -117,7 +124,7 @@ class CurseforgeSpider(Spider):
     def parse_mod_list_page(self, response):
         """
         Extract urls in a mod list page.
-        
+
         For each page, the urls to the mod pages are parsed;
         the :meth:`parse_mod` method will be called to handle mod pages.
         """
@@ -140,21 +147,21 @@ class CurseforgeSpider(Spider):
         """
         loader = ModItemLoader(item=ModItem(), response=response)
         loader.add_xpath("name", "//h1[@class='project-title']//span/text()")
-        
+
         loader.add_xpath("description",
                          "//div[@class='project-description']/p/descendant::text()|"\
                          "//div[@class='project-description']/p/descendant::br|"\
                          "//div[@class='project-description']/p/a"\
                          "[contains(@href, 'http://')]/@href")
-        
+
         loader.add_xpath("created", "//ul[contains(@class,'project-details')]/"\
                          "li[./div[@class='info-label' and text()='Created']]/"\
                          "div[@class='info-data']//text()")
-        
+
         loader.add_xpath("updated", "//ul[contains(@class,'project-details')]/"\
                          "li[./div[@class='info-label' and text()='Last Released File']]/"\
                          "div[@class='info-data']//text()")
-        
+
         loader.add_xpath("downloads", "//ul[contains(@class,'project-details')]/"\
                          "li[./div[@class='info-label' and text()='Total Downloads']]/"\
                          "div[@class='info-data']//text()")
@@ -169,7 +176,7 @@ class CurseforgeSpider(Spider):
 
         loader.add_xpath("donation_url", "//nav[contains(@class,'project-header-nav')]//"\
                          "a[normalize-space(descendant::*/text())='Donate']/@href")
-        
+
         loader.add_xpath("donation_url", "//nav[contains(@class,'project-header-nav')]//"\
                          "a[normalize-space(descendant::*/text())='Donate']/@href")
 
@@ -200,7 +207,7 @@ class CurseforgeSpider(Spider):
     def parse_mod_license(self, response):
         """
         Extract mod license from the license page.
-        
+
         The license is attached to the pre-parsed item given in the
         response meta; the finished :class:`ModItem` is then returned.
         """
@@ -213,6 +220,10 @@ class CurseforgeSpider(Spider):
 
     def parse_mod_files_page(self, response):
         """
+        Extract mod files from a files list page.
+
+        The :class:`ModFileItem` instances are returned
+        for each mod file found
         """
         loader = ModFileItemLoader(item=ModFileItem(), response=response, url=response.url)
 
@@ -221,15 +232,17 @@ class CurseforgeSpider(Spider):
         loader.add_xpath("release", "//td[contains(@class,'project-file-release-type')]/div/@title")
         loader.add_xpath("mc_version", "//td[contains(@class,'project-file-game-version')]//text()")
         loader.add_xpath("size", "//td[contains(@class,'project-file-size')]/text()")
-        loader.add_xpath("upload_date", "//td[contains(@class,'project-file-date-uploaded')]/abbr/@data-epoch")
+        loader.add_xpath("upload_date",
+                         "//td[contains(@class,'project-file-date-uploaded')]/abbr/@data-epoch")
         loader.add_xpath("downloads", "//td[contains(@class,'project-file-downloads')]/text()")
-        loader.add_xpath("download_url", "//div[contains(@class,'project-file-download-button')]//@href")
+        loader.add_xpath("download_url",
+                         "//div[contains(@class,'project-file-download-button')]//@href")
         yield loader.load_item()
-        
+
     def parse_mod_files(self, response):
         """
         Extract mod files from the files list page
-        
+
         Each mod version file is indexed by this method and other
         related ones. The :class:`ModFileItem` instances are returned
         for each mod file found and :class:`Request`s are returned for
@@ -237,6 +250,6 @@ class CurseforgeSpider(Spider):
         """
         for url in self._pagination_iter(response):
             yield Request(url=url, callback=self.parse_mod_files_page)
-        
+
         for item in self.parse_mod_files_page(response):
             yield item
