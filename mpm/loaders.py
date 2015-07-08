@@ -13,6 +13,7 @@ from datetime import datetime
 from itertools import chain
 from functools import partial
 from w3lib.html import remove_tags
+from urlparse import urljoin
 
 from scrapy.loader import ItemLoader
 from scrapy.loader.processors import TakeFirst, Join, Compose, Identity
@@ -71,6 +72,27 @@ def normalize_date(value):
     return date_value
 
 
+def normalize_epoch(value):
+    """
+    Parse epoch timestamps in the input list as 
+    :class:`datetime.date` objects.
+
+    If the string can not be parsed the output for that string is None.
+    :param value: list of input strings
+    :type value: list
+    :return: list of either :class:`datetime.date` or None objects
+    :rtype: list
+    """
+    date_value = []
+    for val in value:
+        try:
+            date_time = datetime.fromtimestamp(int(val))
+            date_value.append(date_time.date())
+        except ValueError:
+            date_value.append(None)
+    return date_value
+
+
 def normalize_int(value):
     """
     Parse an integer string into a python int
@@ -86,6 +108,22 @@ def normalize_int(value):
             return None
         
     return map(_int, value)
+
+
+def normalize_url(value, loader_context):
+    """
+    Parse a relative url list and make it absolute
+
+    :param value: list of input urls
+    :type value: list
+    :param loader_context: context of the item loader
+    :type loader_context: dict
+    :return: absolute url for each input url based on the context
+    url value
+    :rtype: list
+    """
+    base_url = loader_context.get("url")
+    return map(partial(urljoin, base_url), value)
         
 
 class substring(object):
@@ -164,7 +202,7 @@ class JoinNormalizeNewlines(Join):
     
 class ModItemLoader(ItemLoader):
     """
-    Loader for :class:`items.ModItem` objects from 
+    Loader for :class:`items.ModItem` objects used in
     :class:`spiders.curseforge.CurseforgeSpider`
     """
 
@@ -187,3 +225,27 @@ class ModItemLoader(ItemLoader):
     authors_out = Identity()
 
     mod_license_in = Compose(partial(map, remove_tags), partial(map, string.strip))
+
+
+class ModFileItemLoader(ItemLoader):
+    """
+    Loader for :class:`items.ModFileItem` objects used in
+    :class:`spiders.curseforge.CurseforgeSpider`
+    """
+
+    default_output_processor = TakeFirst()
+    default_input_processor = TakeFirst()
+
+    name_in = partial(map, string.strip)
+
+    release_in = partial(map, string.lower)
+
+    mc_version_in = partial(map, string.strip)
+
+    size_in = Compose(partial(map, string.strip), substring("(.*) +(K|M|G)B$"), partial(map, float))
+
+    upload_date_in = Compose(normalize_epoch)
+
+    downloads_in = Compose(normalize_int)
+
+    download_url_in = Compose(normalize_url)

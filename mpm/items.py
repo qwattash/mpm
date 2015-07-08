@@ -51,3 +51,43 @@ class ModItem(scrapy.Item):
 
     smp = scrapy.Field()
     """ The mod supports multiplayer and must be included in the server build """
+
+
+class ModFileItem(scrapy.Item):
+    """
+    Define a donwloadable mod file
+
+    Each item represent a mod version available that can be used.
+    """
+
+    mod = scrapy.Field()
+    """ Name of the mod to which the file is related """
+    
+    name = scrapy.Field()
+    """ Name of the file """
+
+    release = scrapy.Field()
+    """ 
+    Realease informations
+
+    Valid strings are:
+
+    - RELEASE
+    - BETA
+    - ALPHA
+    """
+
+    mc_version = scrapy.Field()
+    """ Compatible minecraft version """
+
+    size = scrapy.Field()
+    """ File size in MB """
+
+    upload_date = scrapy.Field()
+    """ Release date of the file """
+
+    downloads = scrapy.Field()
+    """ Number of times the file has been downloaded """
+
+    download_url = scrapy.Field()
+    """ URL to be used to download the file """

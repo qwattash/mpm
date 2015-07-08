@@ -7,8 +7,8 @@ from scrapy.spiders import Spider
 from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
 from scrapy.http import Request
 
-from ..loaders import ModItemLoader
-from ..items import ModItem
+from ..loaders import ModItemLoader, ModFileItemLoader
+from ..items import ModItem, ModFileItem
 
 
 class CurseforgeSpider(Spider):
@@ -34,6 +34,72 @@ class CurseforgeSpider(Spider):
     allowed_domains = ["minecraft.curseforge.com"]
     start_urls = ["http://minecraft.curseforge.com/mc-mods"]
 
+    def _get_pagination_range(self, response):
+        """
+        Return the pagination range assuming the current page
+        is the first one.
+
+        :param response: the spider response to be processed
+        :type response: scrapy.http.Response
+        :return: a 2-tuple containing (min_page, max_page)
+        :rtype: tuple
+        """
+        # try to guess the page range from urls in the pagination menu
+        paginator_urls = response.xpath("//ul[contains(@class, 'paging-list')]/li/a/@href")
+        # init list of all page numbers found in the menu
+        page_numbers = []
+
+        # extract page numbers from the paginator in the footer
+        for url in paginator_urls.extract():
+            parsed = urlparse(url)
+            query = parse_qs(parsed.query)
+            if "page" in query:
+                page_numbers.append(int(query["page"][0]))
+
+        # page range 
+        first_page = min(page_numbers)
+        last_page = max(page_numbers)
+        return (first_page, last_page)
+
+    def _get_pagination_base(self, response):
+        """
+        Return the pagination url structure as parsed by :func:`urlsplit`
+
+        :param response: the spider response to be processed
+        :type response: scrapy.http.Response
+        :return: the :func:`urlsplit` return object for a pagination url
+        :rtype: tuple
+        """
+
+        paginator_urls = response.xpath("//ul[contains(@class, 'paging-list')]/li/a/@href")
+        url = paginator_urls.extract()[0]
+        # url and query params used to build request objects
+        return urlsplit(url)
+
+    def _pagination_iter(self, response):
+        """
+        Generator of pagination urls for a given spider response
+
+        :param response: the spider response to be processed
+        :type response: scrapy.http.Response
+        :return: an iterator over the valid pagination urls for a response
+        :rtype: iter
+        """
+        first_page, last_page = self._get_pagination_range(response)
+        scheme, netloc, path, query, fragment = self._get_pagination_base(response)
+
+        # get the query part of the url to preserve parameters other than "page"
+        base_page_query = parse_qs(query)
+        self.logger.info("Found mod list pages {0}-{1}".format(first_page, last_page))
+
+        for page in range(first_page, last_page + 1):
+            base_page_query["page"] = page
+            query_string = urlencode(base_page_query)
+            query = query_string
+            url = urlunsplit((scheme, netloc, path, query, fragment))
+            url = urljoin(response.url, url)
+            yield url
+
     def parse(self, response):
         """
         Extract paginated mods and mod links
@@ -45,32 +111,7 @@ class CurseforgeSpider(Spider):
         for request in self.parse_mod_list_page(response):
             yield request
 
-        # try to guess the page range from urls in the pagination footer
-        paginator_urls = response.xpath("//ul[contains(@class, 'paging-list')]/li/a/@href")
-        # assume that the urls are 
-        page_numbers = []
-
-        # extract page numbers from the paginator in the footer
-        for url in paginator_urls.extract():
-            parsed = urlparse(url)
-            query = parse_qs(parsed.query)
-            if "page" in query:
-                page_numbers.append(int(query["page"][0]))
-
-        # url and query params used to build request objects
-        scheme, netloc, path, query, fragment = urlsplit(url)
-        base_page_query = parse_qs(query)
-
-        # page range to request
-        first_page = min(page_numbers)
-        last_page = max(page_numbers)
-        self.logger.info("Found mod list pages {0}-{1}".format(first_page, last_page))
-        for page in range(first_page, last_page + 1):
-            base_page_query["page"] = page
-            query_string = urlencode(base_page_query)
-            query = query_string
-            url = urlunsplit((scheme, netloc, path, query, fragment))
-            url = urljoin(response.url, url)
+        for url in self._pagination_iter(response):
             yield Request(url=url, callback=self.parse_mod_list_page)
 
     def parse_mod_list_page(self, response):
@@ -169,8 +210,33 @@ class CurseforgeSpider(Spider):
         loader.add_value("mod_license", response.body)
         item = loader.load_item()
         yield item
-             
+
+    def parse_mod_files_page(self, response):
+        """
+        """
+        loader = ModFileItemLoader(item=ModFileItem(), response=response, url=response.url)
+
+        loader.add_value("mod", response.meta["item"]["name"])
+        loader.add_xpath("name", "//div[contains(@class,'project-file-name-container')]//text()")
+        loader.add_xpath("release", "//td[contains(@class,'project-file-release-type')]/div/@title")
+        loader.add_xpath("mc_version", "//td[contains(@class,'project-file-game-version')]//text()")
+        loader.add_xpath("size", "//td[contains(@class,'project-file-size')]/text()")
+        loader.add_xpath("upload_date", "//td[contains(@class,'project-file-date-uploaded')]/abbr/@data-epoch")
+        loader.add_xpath("downloads", "//td[contains(@class,'project-file-downloads')]/text()")
+        loader.add_xpath("download_url", "//div[contains(@class,'project-file-download-button')]//@href")
+        yield loader.load_item()
+        
     def parse_mod_files(self, response):
         """
+        Extract mod files from the files list page
+        
+        Each mod version file is indexed by this method and other
+        related ones. The :class:`ModFileItem` instances are returned
+        for each mod file found and :class:`Request`s are returned for
+        each other mod files page to be crawled.
         """
-        pass
+        for url in self._pagination_iter(response):
+            yield Request(url=url, callback=self.parse_mod_files_page)
+        
+        for item in self.parse_mod_files_page(response):
+            yield item

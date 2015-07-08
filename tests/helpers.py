@@ -9,6 +9,8 @@ import pytest
 from functools import wraps
 from scrapy.http import HtmlResponse, Request
 
+from mpm.spiders.curseforge import CurseforgeSpider
+
 def build_scrapy_response(url, data):
     """ Build a fake scrapy response
 
@@ -79,3 +81,13 @@ def assert_parse_requests(parser, urls):
     extra = requests ^ urls
     if extra:
         pytest.fail("Parser Requests not matching expected urls:\n found %s\n expected %s\n diff %s" % (requests, urls, extra))
+
+
+@pytest.fixture()
+def curse_spider(request):
+    """
+    Fixture that initialises a :class:`CurseforgeSpider`
+    """
+    spider = CurseforgeSpider()
+    spider._follow_liks = True
+    return spider
