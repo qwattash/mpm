@@ -38,7 +38,7 @@ the dependency).
 As mpm uses Scrapy, which is supported under Python 2.7 only, the virtual
 environment has to be setup with Python 2.7 as preferred interpreter.
 
-Please also note that .gitignore already contains the folder 'venv' so you may want
+Please also note that .gitignore already contains the directory 'venv' so you may want
 use this as a name for the virtual environment.
 
 ## Requirements and dependencies
@@ -51,7 +51,7 @@ To install them just type:
 pip install -r requirements_dev.txt
 ```
 
-To install the mpm module cd to the mpm root folder and type:
+To install the mpm module cd to the mpm root directory and type:
 
 ```
 pip install -e ./
