@@ -1,0 +1,62 @@
+#!/bin/sh
+
+SCRIPT_ID="pre-commit"
+
+# log warning message
+# $1 message
+function warn(){
+    echo "[!][${SCRIPT_ID}]${1}" 1>&2
+}
+
+# log error message
+# $1 message
+function err(){
+    echo "[-][${SCRIPT_ID}]${1}" 1>&2
+}
+
+# log info message
+# $1 message
+function info(){
+    echo "[+][${SCRIPT_ID}]${1}" 1>&2
+}
+
+# make sure tests are passing
+info "Check virtualenv."
+if [ -z ${VIRTUAL_ENV} ]
+then
+    warn "Not running in python virtualenv! It is recommended to do so."
+else
+    # check that virtualenv matches the requirements file to make sure
+    # that developers work on the same dependencies' versions
+    warn "TODO"
+fi
+
+# make sure tests are passing
+info "Running unittests."
+if ( which "py.test" > /dev/null )
+then
+	py.test --cov mpm tests
+	if [ $? -ne 0 ]
+	then
+		err "Unit tests failed."
+		exit 1
+	fi
+else
+	err "pytest not found! It is STRONGLY discouraged to commit without testing first."
+	exit 1
+fi
+
+# make sure code complies to pylint
+info "Running lint."
+if ( which "pylint" > /dev/null )
+then
+	pylint --rcfile=pylintrc --output-format=text --disable=locally-disabled --report=no mpm
+	if [ $? -ne 0 ]
+	then
+		err "Lint reported some errors."
+		exit 1
+	fi
+else
+	err "pylint not found! It is discouraged to commit without checking lint results first."
+	exit 1
+fi
