@@ -67,7 +67,7 @@ py.test tests
 
 If `pytest-cov` is installed it is possible to run test coverage reports with the following:
 ```
-py.test --cov tests
+py.test --cov mpm tests
 ```
 
 ### Writing tests
