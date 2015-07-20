@@ -4,10 +4,10 @@ mpm.spiders package
 Submodules
 ----------
 
-mpm.spiders.modinfo module
---------------------------
+mpm.spiders.curseforge module
+-----------------------------
 
-.. automodule:: mpm.spiders.modinfo
+.. automodule:: mpm.spiders.curseforge
     :members:
     :undoc-members:
     :show-inheritance:

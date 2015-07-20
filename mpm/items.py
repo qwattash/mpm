@@ -72,9 +72,9 @@ class ModFileItem(scrapy.Item):
 
     Valid strings are:
 
-    - RELEASE
-    - BETA
-    - ALPHA
+    - release
+    - beta
+    - alpha
     """
 
     mc_version = scrapy.Field()

@@ -20,7 +20,8 @@ from ..items import ModItem, ModFileItem
 
 
 class CurseforgeSpider(Spider):
-    """ Spider for the curseforge repository
+    """
+    Spider for the curseforge repository
 
     Generate :class:`ModItem` elements for mods in
     the curseforge online archive.
