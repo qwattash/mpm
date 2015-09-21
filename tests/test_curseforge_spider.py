@@ -14,7 +14,7 @@ from scrapy.http import Request
 
 from mpm.items import ModItem, ModFileItem
 
-from helpers import assert_parse_requests, scrapy_response_from_file, curse_spider
+from helpers import assert_parse_requests, scrapy_response_from_file, curse_spider, assert_load_item
 
 
 expected_urls_index = ["/mc-mods/74072-tinkers-construct",
@@ -35,7 +35,8 @@ expected_urls_mod = ["/mc-mods/74072-tinkers-construct/files",
                      "/mc-mods/74072-tinkers-construct/license"]
 
 expected_urls_files = ["/mc-mods/74072-tinkers-construct/files?page=2",
-                       "/mc-mods/74072-tinkers-construct/files?page=3"]
+                       "/mc-mods/74072-tinkers-construct/files?page=3",
+                       "/mc-mods/74072-tinkers-construct/files/2245770"]
 
 @pytest.mark.crawl_curse
 @pytest.mark.parametrize("response", [
@@ -146,32 +147,47 @@ def test_curseforge_mod_files_list_page(response, curse_spider):
     
     The spider generates:
     
-    - :class:`mpm.items.ModFileItem` instances for each mod file download
-    url found
     - :class:`scrapy.http.Request` linking to other mod file list
     pages from the pagination menu
+    - :class:`scrapy.http.Request` linking to file detail pages for each
+    file item encountered, each request holds a 
+    :class:`mpm.items.ModFileItem` for the corresponding partial file
+    item
     """
-    # setup item given in response meta
+    # setup partial item given in response meta
     mod_item = ModItem()
     mod_item["name"] = "Mod Name"
     response.meta["item"] = mod_item
-    
-    parsed = list(curse_spider.parse_mod_files(response))
 
-    items = filter(lambda i: type(i) == ModFileItem, parsed)
-    requests = filter(lambda i: type(i) != ModFileItem, parsed)
+    requests = list(curse_spider.parse_mod_files(response))
 
     urls = [urlparse.urljoin(response.url, url) for url in expected_urls_files]
     assert_parse_requests(requests, urls)
+
+    # check partial item data
+    items = [req.meta["item"] for req in requests if req.meta.has_key("item")]
+
+    file_alpha = {
+        "mod": "Mod Name",
+        "name": "Mod_file_1.6.4.jar",
+        "release": "alpha",
+        "mc_version": "1.6.4",
+        "size": 10.5,
+        "upload_date": date(2015, 7, 6),
+        "downloads": 1000,
+        "download_url": "http://foo.org/mc-mods/download_url"
+    }
+    file_release = {
+        "mod": "Mod Name",
+        "name": "Mod_file-1.7.10-1.8.7.jar",
+        "release": "release",
+        "mc_version": "1.7.10",
+        "size": 5.27,
+        "upload_date": date(2015, 8, 19),
+        "downloads": 149233,
+        "download_url": "http://foo.org/mc-mods/74072-tinkers-construct/files/2253057/download"
+    }
     
-    assert len(items) == 1
-    item = items[0]
-    
-    assert item["mod"] == "Mod Name"
-    assert item["name"] == "Mod_file_1.6.4.jar"
-    assert item["release"] == "alpha"
-    assert item["mc_version"] == "1.6.4"
-    assert item["size"] == 10.5
-    assert item["upload_date"] == date(2015, 7, 6)
-    assert item["downloads"] == 1000
-    assert item["download_url"] == "http://foo.org/mc-mods/download_url"
+    assert len(items) == 2
+    assert_load_item(items, file_alpha)
+    assert_load_item(items, file_release)
