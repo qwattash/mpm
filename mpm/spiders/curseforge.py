@@ -110,11 +110,15 @@ class CurseforgeSpider(Spider):
 
     def parse(self, response):
         """
-        Extract paginated mods and mod links
-        in the first page
+        Extract paginated mods and mod links in the first page
 
-        Note: it is assumed that urls in the pagination are of the form
+        :param response: the spider response for the first mod list page
+        It is assumed that urls in the pagination are of the form
         ``"/category?page=<integer>[&other]"``
+        :type response: scrapy.http.Response
+        :return: yield :class:`scrapy.http.Request`s for each paginated
+        mod list url and for each mod item in the first page list.
+        :rtype: iter
         """
         for request in self.parse_mod_list_page(response):
             yield request
@@ -127,7 +131,13 @@ class CurseforgeSpider(Spider):
         Extract urls in a mod list page.
 
         For each page, the urls to the mod pages are parsed;
-        the :meth:`parse_mod` method will be called to handle mod pages.
+        the :meth:`parse_mod` method will be called to handle mod pages
+
+        :param response: the spider response for a mod list page
+        :type response: scrapy.http.Response
+        :return: yield :class:`scrapy.http.Request`s for each mod item in
+        the mod list page received
+        :rtype: iter
         """
         mod_links = response.xpath("//ul[contains(@class, 'listing-project')]/li/div/a/@href")
         for url in mod_links.extract():
@@ -145,9 +155,15 @@ class CurseforgeSpider(Spider):
         A second request is generated to extract files for the mod,
         the files will be stored in a separate item that will be
         associated with the mod item in the item pipeline.
+
+        :param response: the spider response for a mod detail page
+        :type response: scrapy.http.Response
+        :return: yield :class:`scrapy.http.Request`s for the mod
+        license page and the mod files list page
+        :rtype: iter
         """
         loader = ModItemLoader(item=ModItem(), response=response)
-        loader.add_xpath("name", "//h1[@class='project-title']//span/text()")
+        loader.add_xpath("name", "//h1[@class='project-title']//text()")
 
         loader.add_xpath("description",
                          "//div[@class='project-description']/p/descendant::text()|"\
@@ -209,8 +225,13 @@ class CurseforgeSpider(Spider):
         """
         Extract mod license from the license page.
 
-        The license is attached to the pre-parsed item given in the
-        response meta; the finished :class:`ModItem` is then returned.
+        :param response: the response for a mod license page,
+        the response mush have a :class:`mpm.items.ModItem` instance
+        in its meta["item"] entry
+        :type response: scrapy.http.Response
+        :return: yield the given parsed :class:`ModItem` with the
+        license field updated
+        :rtype: iter
         """
         item = response.meta["item"]
         loader = ModItemLoader(item=item, response=response)
@@ -223,9 +244,9 @@ class CurseforgeSpider(Spider):
         """
         Extract mod files from a files list page.
 
-        :param response: the response to be parsed, the mod to which
-        the files belong is passed in the response meta["item"] as a
-        :class:`mpm.items.ModItem` instance
+        :param response: the response for a mod files list page,
+        the mod to which the files belong is passed in the response
+        meta["item"] as a :class:`mpm.items.ModItem` instance
         :type response: scrapy.http.Response
         :return: yield items for each mod file found
         :rtype: ModFileItem
@@ -239,7 +260,7 @@ class CurseforgeSpider(Spider):
         upload_date_class = "contains(@class,'project-file-date-uploaded')"
         download_class = "contains(@class,'project-file-downloads')"
         download_url_class = "contains(@class,'project-file-download-button')"
-        
+
         for file_element in files_table_xpath:
             # extract item info for each item
             loader = ModFileItemLoader(item=ModFileItem(),
@@ -255,7 +276,7 @@ class CurseforgeSpider(Spider):
             loader.add_xpath("downloads", ".//td[%s]/text()" % download_class)
             loader.add_xpath("download_url", ".//div[%s]//@href" % download_url_class)
             file_item = loader.load_item()
-            
+
             # get the item detail
             file_detail_url_xpath = response.xpath("//div[%s]//@href" % name_class)
             file_detail_url = file_detail_url_xpath.extract()[0]
@@ -274,7 +295,8 @@ class CurseforgeSpider(Spider):
         related ones, see :meth:`parse_mod_files_page` and
         :meth:`parse_mod_file_details`
 
-        :param response: the response to be parsed
+        :param response: the response for the first page of the
+        mod files paginated list
         :type response: scrapy.http.Response
         :return: yield :class:`scrapy.http.Request` for each paginated
         mod files page and for each file detail page
@@ -294,7 +316,9 @@ class CurseforgeSpider(Spider):
         relevant informations are parsed and added to the partial item
         passed in the response meta.
 
-        :param response: the response to be parsed
+        :param response: the response for a mod file detail page, the
+        response must have a :class:`mpm.items.ModFileItem`
+        in its meta["item"]
         :type response: scrapy.http.Response
         :return: yield the :class:`mpm.items.ModFileItem` for the file
         parsed by the methods :meth:`parse_mod_files` and
