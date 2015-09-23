@@ -163,7 +163,7 @@ class CurseforgeSpider(Spider):
         :rtype: iter
         """
         loader = ModItemLoader(item=ModItem(), response=response)
-        loader.add_xpath("name", "//h1[@class='project-title']//text()")
+        loader.add_xpath("name", "//h1[contains(@class,'project-title')]/a//text()")
 
         loader.add_xpath("description",
                          "//div[@class='project-description']/p/descendant::text()|"\
@@ -325,4 +325,27 @@ class CurseforgeSpider(Spider):
         :meth:`parse_mod_files_page`
         :rtype: iter
         """
-        yield response
+        loader = ModFileItemLoader(item=response.meta["item"], response=response, url=response.url)
+        loader.add_xpath("md5", "//span[contains(@class,'md5')]/text()")
+        loader.add_xpath("changelog", "//div[contains(@class,'logbox')]//text()")
+        dependency_dict = {
+            "optional": [],
+            "required": []
+        }
+
+        # xpath helpers
+        dep_class = "contains(@class,'details-related-projects')"
+        dep_name_class = "contains(@class,'project-tag-name')"
+        dep_type_class = "contains(@class,'optionallibrary')"
+
+        for dep in response.xpath("//section[%s]//li" % dep_class):
+            dep_name_match = dep.xpath(".//div[%s]//text()" % dep_name_class).extract()
+            dep_name = dep_name_match[0].strip()
+
+            dep_type_match = dep.xpath(".//div[%s]" % dep_type_class).extract()
+            dep_type = "optional" if len(dep_type_match) == 1 else "required"
+
+            dependency_dict[dep_type].append(dep_name)
+
+        loader.add_value("dependencies", dependency_dict)
+        yield loader.load_item()

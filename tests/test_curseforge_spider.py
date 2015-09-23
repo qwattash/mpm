@@ -191,3 +191,36 @@ def test_curseforge_mod_files_list_page(response, curse_spider):
     assert len(items) == 2
     assert_load_item(items, file_alpha)
     assert_load_item(items, file_release)
+
+
+@pytest.mark.crawl_curse
+@pytest.mark.parametrize("response", [
+    scrapy_response_from_file("http://foo.org", "tests/resources/curseforge_mod_file_details_base.html"),
+    scrapy_response_from_file("http://foo.org", "tests/resources/curseforge_mod_file_details_full.html"),
+])
+def test_curseforge_mod_file_details(response, curse_spider):
+    """
+    Test :meth:`CurseforgeSpider.parse_mod_file_details`
+
+    The spider updates a :class:`mpm.items.ModFileItem` with
+    md5, changelog and dependency list
+    """
+    # setup partial item in the response meta
+    file_item = ModFileItem()
+    file_item["mod"] = "Mod name"
+    response.meta["item"] = file_item
+
+    items = list(curse_spider.parse_mod_file_details(response))
+
+    # check item content
+    file_data = {
+        "md5": "7e977309f0440fe851f450d0d74af594",
+        "changelog": "Changes\nAdded French localization\nAdded Italian localization",
+        "dependencies": {
+            "optional": ["opt mod 1", "opt mod 2"],
+            "required": ["req mod 1"]
+        }
+    }
+
+    assert len(items) == 1
+    assert_load_item(items, file_data)

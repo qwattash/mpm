@@ -51,6 +51,35 @@ def normalize_line_breaks(value):
     return [re.sub("<br>", "\n", item) for item in value]
 
 
+def filter_empty_lines(value):
+    """
+    Remove empty lines to compact the text, multiple empty lines are
+    collapsed into a single empty line, single lines are removed.
+    Empty lines at the beginning and the end are stripped.
+
+    :param value: list of data strings
+    :type value: list
+    :return: the data list without empty lines
+    :rtype: list
+    """
+    filtered = []
+    empty_found = False
+    for line in value:
+        if line == "\n":
+            if not empty_found:
+                filtered.append(line)
+                empty_found = True
+        else:
+            empty_found = False
+            filtered.append(line)
+    # strip leading and trailing empty lines
+    if len(filtered) > 0:
+        if filtered[0] == "\n":
+            del filtered[0]
+        if filtered[-1] == "\n":
+            del filtered[-1]
+    return filtered
+
 def normalize_date(value):
     """
     Parse strings in the input list as :class:`datetime.date` objects.
@@ -218,6 +247,8 @@ class ModItemLoader(ItemLoader): # pylint: disable=too-few-public-methods
     default_output_processor = TakeFirst()
     default_input_processor = TakeFirst()
 
+    name_in = Compose(normalize_line_breaks, normalize_blanks)
+
     description_in = Compose(normalize_line_breaks, normalize_blanks)
     description_out = JoinNormalizeNewlines()
 
@@ -258,3 +289,6 @@ class ModFileItemLoader(ItemLoader): # pylint: disable=too-few-public-methods
     downloads_in = Compose(normalize_int)
 
     download_url_in = Compose(normalize_url)
+
+    changelog_in = Compose(normalize_line_breaks, normalize_blanks, filter_empty_lines)
+    changelog_out = JoinNormalizeNewlines()
