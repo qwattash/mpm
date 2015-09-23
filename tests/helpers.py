@@ -5,6 +5,7 @@ Provide some shortcuts for handling scrapy tests with pytest
 """
 
 import pytest
+import six
 
 from functools import wraps
 from scrapy.http import HtmlResponse, Request
@@ -12,7 +13,8 @@ from scrapy.http import HtmlResponse, Request
 from mpm.spiders.curseforge import CurseforgeSpider
 
 def build_scrapy_response(url, data):
-    """ Build a fake scrapy response
+    """
+    Build a fake scrapy response
 
     Generate a scrapy response from given textual data and url
     
@@ -28,7 +30,8 @@ def build_scrapy_response(url, data):
 
 
 def scrapy_response_from_file(url, path):
-    """ Build a fake scrapy response from a file
+    """
+    Build a fake scrapy response from a file
     
     The file path is either absolute or relative to the test runner
     woring dir
@@ -42,7 +45,8 @@ def scrapy_response_from_file(url, path):
 
 
 def mock_scrapy_response(url, path):
-    """ Decorator that provides a mock scrapy response
+    """
+    Decorator that provides a mock scrapy response
 
     A mock scrapy :class:`Response` is given as first argument to
     the decorated function
@@ -64,7 +68,8 @@ def mock_scrapy_response(url, path):
 
 
 def assert_parse_requests(parser, urls):
-    """ Test helper for asserting returned :class:`scrapy.http.Request`
+    """
+    Test helper for asserting returned :class:`scrapy.http.Request`
     from a parser method.
 
     The test accepts a generator, such as the one given by
@@ -80,7 +85,35 @@ def assert_parse_requests(parser, urls):
     urls = set(urls)
     extra = requests ^ urls
     if extra:
-        pytest.fail("Parser Requests not matching expected urls:\n found %s\n expected %s\n diff %s" % (requests, urls, extra))
+        pytest.fail("Parser Requests not matching expected urls:\n found"\
+                    " %s\n expected %s\n diff %s" % (requests, urls, extra))
+
+
+def assert_load_item(items, sample):
+    """
+    Test helper for asserting that an item with the same key and values
+    of _sample_ are present in the items list
+
+    :param items: iterable of items to be checked
+    :type items: iterable
+    :param sample: dict of key-value pairs to be checked
+    :type sample: dict
+    :raise AssertionError: if no item matching the _sample_ is found
+    """
+    fail_reasons = []
+    fail_string = "Item %s differ by %s -> %s != %s"
+    for index, item in enumerate(items):
+        match = True
+        for key,val in six.iteritems(sample):
+            if item[key] != val:
+                fail_reasons.append(fail_string % (index, key, item[key], val))
+                match = False
+                break
+        if match:
+            break
+    else:
+        pytest.fail("Item matching %s not found in %s.\n%s" %
+                    (sample, items, "\n".join(fail_reasons)))
 
 
 @pytest.fixture()

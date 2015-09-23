@@ -91,3 +91,17 @@ class ModFileItem(scrapy.Item):
 
     download_url = scrapy.Field()
     """ URL to be used to download the file """
+
+    md5 = scrapy.Field()
+    """ md5 checksum of the file """
+
+    changelog = scrapy.Field()
+    """ Release changelog """
+
+    dependencies = scrapy.Field()
+    """
+    Dependencies for the release
+
+    Dict containing the keys 'optional' and 'required', for each key
+    a list of mod names is given
+    """
